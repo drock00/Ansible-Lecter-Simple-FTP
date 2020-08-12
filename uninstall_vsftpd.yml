@@ -1,0 +1,29 @@
+#Derek Calzadillas was here
+---
+- name: uninstall and remove setup ftp service
+  hosts: file,!prod
+  tasks:
+    - name: detect if file is being served
+      shell: ls /var/ftp/pub
+      register: result
+    - name: delete the file being served
+      file:
+        path: /var/ftp/pub/README
+        state: absent
+      when: "'README' in result.stdout"
+    - name: close firewall for ftp
+      firewalld:
+        service: ftp
+        state: disabled
+        permanent: no
+        immediate: no
+    - name: disable vsftpd
+      service:
+        name: vsftpd
+        enabled: false
+        state: stopped
+    - name: uninstall vsftpd
+      yum:
+        name: vsftpd
+        state: absent
+

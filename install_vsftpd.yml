@@ -1,0 +1,38 @@
+#Derek Calzadillas was here
+---
+- name: install and setup ftp service
+  hosts: file,!prod
+  tasks:
+    - name: install vsftpd
+      yum:
+        name: vsftpd
+        state: latest
+    - name: enable vsftpd
+      service:
+        name: vsftpd
+        enabled: true
+        state: started
+    - name: open firewall for ftp
+      firewalld:
+        service: ftp
+        state: enabled
+        permanent: yes
+        immediate: yes
+    - name: create the ftp README file
+      copy:
+        content: README FOR FTP SERVER
+        dest: /var/ftp/pub/README.md
+        force: yes
+        mode: 0444
+    - name: copy over jinja2 config
+      template:
+        src: templates/vsftpd.j2
+        dest: /etc/vsftpd/vsftpd.conf
+      notify:
+        - restart
+  handlers:
+  - name: restart
+    service:
+      name: vsftpd
+      state: restarted
+
